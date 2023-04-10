@@ -3,11 +3,11 @@ import "flatpickr/dist/flatpickr.min.css";
 import Notiflix from 'notiflix';
 
 const refs = {
-    taimerInput: document.querySelector('#datetime-picker'),
+    timerInput: document.querySelector('#datetime-picker'),
     btnStart: document.querySelector('button[data-start]'),
     day: document.querySelector('span.value[data-days]'),
     hour: document.querySelector('span.value[data-hours]'),
-    minut: document.querySelector('span.value[data-minutes]'),
+    minute: document.querySelector('span.value[data-minutes]'),
     second: document.querySelector('span.value[data-seconds]'),
 };
 console.log(refs);
@@ -22,10 +22,18 @@ const options = {
     defaultDate: new Date(),
     minuteIncrement: 1,
     onClose(selectedDates) {
-      console.log(selectedDates[0]);
+      futureTime = selectedDates[0].getTime();
+
+        if (selectedDates[0] <= options.defaultDate) {
+            refs.btnStart.disabled = true;
+            Notiflix.Notify.failure('Please choose a date in the future');
+        } else {
+            refs.btnStart.disabled = false;
+            return futureTime;
+        }
     },
   };
-
+  const fp = flatpickr(refs.timerInput, options)
 
   function convertMs(ms) {
     // Number of milliseconds per unit of time
@@ -46,6 +54,23 @@ const options = {
     return { days, hours, minutes, seconds };
   }
   
-  console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-  console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-  console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+  function addLeadingZero(value) {
+    return String(value).padStart(2, '0');
+}
+
+function onBtnStart() {
+    setInterval(() => {
+        const currentTime = Date.now();
+        const remainingTime = futureTime - currentTime;
+
+        if (remainingTime < 0) {
+            return
+        } else {
+            const { days, hours, minutes, seconds } = convertMs(remainingTime);
+            refs.day.textContent = addLeadingZero(days);
+            refs.hour.textContent = addLeadingZero(hours);
+            refs.minute.textContent = addLeadingZero(minutes);
+            refs.second.textContent = addLeadingZero(seconds);
+        }
+    }, 1000)
+}
